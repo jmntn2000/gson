@@ -39,6 +39,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.google.gson.internal.bind.JsonAdapterAnnotationTypeAdapterFactory.getTypeAdapter;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Type adapter that reflects over the fields and methods of a class.
@@ -88,7 +92,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
       final TypeToken<?> fieldType, boolean serialize, boolean deserialize) {
     final boolean isPrimitive = Primitives.isPrimitive(fieldType.getRawType());
     // special casing primitives here saves ~5% on Android...
-    return new ReflectiveTypeAdapterFactory.BoundField(name, serialize, deserialize) {
+    return new ReflectiveTypeAdapterFactory.BoundField(name, serialize, deserialize,field) {
       final TypeAdapter<?> typeAdapter = getFieldAdapter(context, field, fieldType);
       @SuppressWarnings({"unchecked", "rawtypes"}) // the type adapter and field type always agree
       @Override void write(JsonWriter writer, Object value)
@@ -157,11 +161,13 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     final String name;
     final boolean serialized;
     final boolean deserialized;
+    final Field field;
 
-    protected BoundField(String name, boolean serialized, boolean deserialized) {
+    protected BoundField(String name, boolean serialized, boolean deserialized,Field field) {
       this.name = name;
       this.serialized = serialized;
       this.deserialized = deserialized;
+      this.field = field;
     }
     abstract boolean writeField(Object value) throws IOException, IllegalAccessException;
     abstract void write(JsonWriter writer, Object value) throws IOException, IllegalAccessException;
@@ -210,15 +216,40 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
         out.nullValue();
         return;
       }
-
+      Map<String,List<String>> seenIds = out.getSeenIds();
       out.beginObject();
       try {
-        for (BoundField boundField : boundFields.values()) {
-          if (boundField.writeField(value)) {
-            out.name(boundField.name);
-            boundField.write(out, value);
+          boolean idOnly = false;
+          BoundField id = null;
+          if(out.isExcludeDuplicateObjects() && !Primitives.isPrimitive(TypeToken.get(value.getClass()).getType())){
+              id = boundFields.get("id");
+              if(id!=null){
+                  Object v = id.field.get(value);
+                  String k = value.getClass().getName();
+                  if(v!=null){
+                      String sVal = v.toString();
+                    if(!seenIds.containsKey(k)){
+                        seenIds.put(k,new ArrayList<String>());
+                    }
+                    if(seenIds.get(k).contains(sVal)){
+                        idOnly = true;
+                    }else{
+                        seenIds.get(k).add(sVal);
+                    }
+                  }
+              }
           }
-        }
+          if(!idOnly){
+            for (BoundField boundField : boundFields.values()) {
+              if (boundField.writeField(value)) {
+                out.name(boundField.name);
+                boundField.write(out, value);
+              }
+            }
+          }else{
+           out.name(id.name);
+           id.write(out, value);
+                    }
       } catch (IllegalAccessException e) {
         throw new AssertionError();
       }

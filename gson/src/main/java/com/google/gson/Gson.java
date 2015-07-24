@@ -124,6 +124,8 @@ public final class Gson {
   private final boolean htmlSafe;
   private final boolean generateNonExecutableJson;
   private final boolean prettyPrinting;
+  private final boolean upperCaseStrings;
+  private final boolean excludeDuplicateObjects;
 
   final JsonDeserializationContext deserializationContext = new JsonDeserializationContext() {
     @SuppressWarnings("unchecked")
@@ -181,18 +183,40 @@ public final class Gson {
         true, false, false, LongSerializationPolicy.DEFAULT,
         Collections.<TypeAdapterFactory>emptyList());
   }
+  
+  public Gson(boolean serializeNulls, boolean htmlsafe,boolean prettyPrinting,
+          boolean upperCaseStrings, boolean excludeDuplicateObjects) {
+    this(Excluder.DEFAULT, FieldNamingPolicy.IDENTITY,
+        Collections.<Type, InstanceCreator<?>>emptyMap(), serializeNulls, false, DEFAULT_JSON_NON_EXECUTABLE,
+        htmlsafe, prettyPrinting, false, LongSerializationPolicy.DEFAULT,
+        Collections.<TypeAdapterFactory>emptyList(),upperCaseStrings, excludeDuplicateObjects);
+  }
+  
+  Gson(final Excluder excluder, final FieldNamingStrategy fieldNamingPolicy,
+      final Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
+      boolean complexMapKeySerialization, boolean generateNonExecutableGson, boolean htmlSafe,
+      boolean prettyPrinting, boolean serializeSpecialFloatingPointValues,
+      LongSerializationPolicy longSerializationPolicy,
+      List<TypeAdapterFactory> typeAdapterFactories){
+      this(Excluder.DEFAULT, FieldNamingPolicy.IDENTITY,
+        Collections.<Type, InstanceCreator<?>>emptyMap(), false, false, DEFAULT_JSON_NON_EXECUTABLE,
+        true, false, false, LongSerializationPolicy.DEFAULT,
+        Collections.<TypeAdapterFactory>emptyList(),false,false);
+  }
 
   Gson(final Excluder excluder, final FieldNamingStrategy fieldNamingPolicy,
       final Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
       boolean complexMapKeySerialization, boolean generateNonExecutableGson, boolean htmlSafe,
       boolean prettyPrinting, boolean serializeSpecialFloatingPointValues,
       LongSerializationPolicy longSerializationPolicy,
-      List<TypeAdapterFactory> typeAdapterFactories) {
+      List<TypeAdapterFactory> typeAdapterFactories, boolean upperCaseStings, boolean excludeDuplicateObjects) {
     this.constructorConstructor = new ConstructorConstructor(instanceCreators);
     this.serializeNulls = serializeNulls;
     this.generateNonExecutableJson = generateNonExecutableGson;
     this.htmlSafe = htmlSafe;
     this.prettyPrinting = prettyPrinting;
+    this.upperCaseStrings = upperCaseStings;
+    this.excludeDuplicateObjects = excludeDuplicateObjects;
 
     List<TypeAdapterFactory> factories = new ArrayList<TypeAdapterFactory>();
 
@@ -599,6 +623,10 @@ public final class Gson {
     writer.setHtmlSafe(htmlSafe);
     boolean oldSerializeNulls = writer.getSerializeNulls();
     writer.setSerializeNulls(serializeNulls);
+    boolean oldUppercase = writer.isUpperCaseStrings();
+    writer.setUpperCaseStrings(upperCaseStrings);
+    boolean oldExcludeDup = writer.isExcludeDuplicateObjects();
+    writer.setExcludeDuplicateObjects(excludeDuplicateObjects);
     try {
       ((TypeAdapter<Object>) adapter).write(writer, src);
     } catch (IOException e) {
@@ -607,6 +635,8 @@ public final class Gson {
       writer.setLenient(oldLenient);
       writer.setHtmlSafe(oldHtmlSafe);
       writer.setSerializeNulls(oldSerializeNulls);
+      writer.setUpperCaseStrings(oldUppercase);
+      writer.setExcludeDuplicateObjects(oldExcludeDup);
     }
   }
 

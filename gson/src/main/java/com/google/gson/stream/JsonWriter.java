@@ -28,6 +28,8 @@ import static com.google.gson.stream.JsonScope.EMPTY_OBJECT;
 import static com.google.gson.stream.JsonScope.NONEMPTY_ARRAY;
 import static com.google.gson.stream.JsonScope.NONEMPTY_DOCUMENT;
 import static com.google.gson.stream.JsonScope.NONEMPTY_OBJECT;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Writes a JSON (<a href="http://www.ietf.org/rfc/rfc4627.txt">RFC 4627</a>)
@@ -184,10 +186,16 @@ public class JsonWriter implements Closeable, Flushable {
   private boolean lenient;
 
   private boolean htmlSafe;
+  
+  private boolean upperCaseStrings = false;
+  
+  private boolean excludeDuplicateObjects = false;
 
   private String deferredName;
 
   private boolean serializeNulls = true;
+  
+  private HashMap<String,List<String>> seenIds = new HashMap<String, List<String>>();
 
   /**
    * Creates a new instance that writes a JSON-encoded stream to {@code out}.
@@ -200,6 +208,12 @@ public class JsonWriter implements Closeable, Flushable {
     }
     this.out = out;
   }
+
+    public HashMap<String, List<String>> getSeenIds() {
+        return seenIds;
+    }
+  
+  
 
   /**
    * Sets the indentation string to be repeated for each level of indentation
@@ -260,6 +274,24 @@ public class JsonWriter implements Closeable, Flushable {
   public final boolean isHtmlSafe() {
     return htmlSafe;
   }
+
+  public final void setUpperCaseStrings(boolean upperCaseStrings) {
+    this.upperCaseStrings = upperCaseStrings;
+  }
+
+  public final boolean isUpperCaseStrings() {
+    return upperCaseStrings;
+  }
+
+    public boolean isExcludeDuplicateObjects() {
+        return excludeDuplicateObjects;
+    }
+
+    public void setExcludeDuplicateObjects(boolean excludeDuplicateObjects) {
+        this.excludeDuplicateObjects = excludeDuplicateObjects;
+    }
+  
+  
 
   /**
    * Sets whether object members are serialized when their value is null.
@@ -416,7 +448,7 @@ public class JsonWriter implements Closeable, Flushable {
     }
     writeDeferredName();
     beforeValue(false);
-    string(value);
+    string(upperCaseStrings?value.toUpperCase():value);
     return this;
   }
 

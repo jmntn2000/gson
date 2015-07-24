@@ -28,6 +28,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.common.TestTypes.ClassOverridingEquals;
+import java.math.BigInteger;
+import java.util.List;
 
 /**
  * Functional tests related to circular reference detection and error reporting.
@@ -41,18 +43,41 @@ public class CircularReferenceTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    gson = new Gson();
+    gson = new Gson(false, true, true, true, true);
   }
 
   public void testCircularSerialization() throws Exception {
-    ContainsReferenceToSelfType a = new ContainsReferenceToSelfType();
-    ContainsReferenceToSelfType b = new ContainsReferenceToSelfType();
-    a.children.add(b);
-    b.children.add(a);
+//    ContainsReferenceToSelfType a = new ContainsReferenceToSelfType();
+//    ContainsReferenceToSelfType b = new ContainsReferenceToSelfType();
+//    a.children.add(b);
+//    b.children.add(a);
+      Order a = new Order();
+      a.id=new BigInteger("1");
+      a.orderName="Order A";
+      a.parts = new ArrayList<Parts>();
+      Parts l1 = new Parts();
+      Parts l2 = new Parts();
+      Parts l3 = new Parts();
+      l1.id = new BigInteger("1");
+      l1.order = a;
+      l1.part="Part 1";
+      l2.id = new BigInteger("2");
+      l2.order = a;
+      l2.part="Part 2";
+      l3.order = a;
+      l3.id = new BigInteger("3");
+      l3.part="Part 3";
+      a.parts.add(l1);
+      a.parts.add(l2);
+      a.parts.add(l3);
+      a.parts.add(l3);
     try {
-      gson.toJson(a);
+      String res = gson.toJson(a);
+        System.out.println(res);
+        System.out.println();
       fail("Circular types should not get printed!");
-    } catch (StackOverflowError expected) {
+    } catch (Exception expected) {
+        System.out.println("j");
     }
   }
 
@@ -122,5 +147,17 @@ public class CircularReferenceTest extends TestCase {
   private static class ClassWithSelfReferenceArray {
     @SuppressWarnings("unused")
     ClassWithSelfReferenceArray[] children;
+  }
+  
+  private static class Parts {
+      BigInteger id;
+      Order order;
+      String part;
+  }
+  
+  private static class Order {
+      BigInteger id;
+      List<Parts> parts;
+      String orderName;
   }
 }

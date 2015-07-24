@@ -15,12 +15,6 @@
  */
 package com.google.gson.functional;
 
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import junit.framework.TestCase;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -28,8 +22,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.common.TestTypes.ClassOverridingEquals;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import junit.framework.TestCase;
 
 /**
  * Functional tests related to circular reference detection and error reporting.
@@ -43,7 +41,7 @@ public class CircularReferenceTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    gson = new Gson(false, true, true, true, true);
+      gson = new Gson(false, true, false, true, true);
   }
 
   public void testCircularSerialization() throws Exception {
@@ -72,12 +70,11 @@ public class CircularReferenceTest extends TestCase {
       a.parts.add(l3);
       a.parts.add(l3);
     try {
-      String res = gson.toJson(a);
+        String res = gson.toJson(l1);
         System.out.println(res);
         System.out.println();
-      fail("Circular types should not get printed!");
     } catch (Exception expected) {
-        System.out.println("j");
+        fail("Circular types should not get printed!");
     }
   }
 

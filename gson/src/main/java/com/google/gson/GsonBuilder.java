@@ -16,6 +16,10 @@
 
 package com.google.gson;
 
+import com.google.gson.internal.$Gson$Preconditions;
+import com.google.gson.internal.Excluder;
+import com.google.gson.internal.bind.TypeAdapters;
+import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -25,11 +29,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.google.gson.internal.$Gson$Preconditions;
-import com.google.gson.internal.Excluder;
-import com.google.gson.internal.bind.TypeAdapters;
-import com.google.gson.reflect.TypeToken;
 
 /**
  * <p>Use this builder to construct a {@link Gson} instance when you need to set configuration
@@ -82,7 +81,9 @@ public final class GsonBuilder {
   private boolean serializeSpecialFloatingPointValues;
   private boolean escapeHtmlChars = true;
   private boolean prettyPrinting;
-  private boolean generateNonExecutableJson;
+    private boolean generateNonExecutableJson;
+    private boolean upperCaseStrings = false;
+    private boolean excludeDuplicateObjects = false;
 
   /**
    * Creates a GsonBuilder instance that can be used to build Gson with various configuration
@@ -93,8 +94,24 @@ public final class GsonBuilder {
   public GsonBuilder() {
   }
 
-  /**
-   * Configures Gson to enable versioning support.
+    public boolean isUpperCaseStrings() {
+        return upperCaseStrings;
+    }
+
+    public void setUpperCaseStrings(boolean upperCaseStrings) {
+        this.upperCaseStrings = upperCaseStrings;
+    }
+
+    public boolean isExcludeDuplicateObjects() {
+        return excludeDuplicateObjects;
+    }
+
+    public void setExcludeDuplicateObjects(boolean excludeDuplicateObjects) {
+        this.excludeDuplicateObjects = excludeDuplicateObjects;
+    }
+
+    /**
+     * Configures Gson to enable versioning support.
    *
    * @param ignoreVersionsAfter any field or type marked with a version higher than this value
    * are ignored during serialization or deserialization.
@@ -545,7 +562,7 @@ public final class GsonBuilder {
     return new Gson(excluder, fieldNamingPolicy, instanceCreators,
         serializeNulls, complexMapKeySerialization,
         generateNonExecutableJson, escapeHtmlChars, prettyPrinting,
-        serializeSpecialFloatingPointValues, longSerializationPolicy, factories);
+              serializeSpecialFloatingPointValues, longSerializationPolicy, factories, upperCaseStrings, excludeDuplicateObjects);
   }
 
   private void addTypeAdaptersForDate(String datePattern, int dateStyle, int timeStyle,

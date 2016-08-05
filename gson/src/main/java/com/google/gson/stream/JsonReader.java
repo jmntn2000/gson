@@ -839,7 +839,7 @@ public class JsonReader implements Closeable {
     }
     peeked = PEEKED_NONE;
     pathIndices[stackSize - 1]++;
-    return result;
+      return result.toUpperCase();
   }
 
   /**

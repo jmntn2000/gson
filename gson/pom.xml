@@ -3,7 +3,7 @@
   <groupId>com.google.code.gson</groupId>
   <artifactId>gson</artifactId>
   <packaging>jar</packaging>
-  <version>2.3.3.PS</version>
+  <version>2.3.4.PS</version>
   <inceptionYear>2008</inceptionYear>
   <name>Gson</name>
   <parent>
